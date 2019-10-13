@@ -35,6 +35,23 @@ setClass("illuminaFlowCellLayout", slots=c(lanecount="integer",
                                            tilenamingconvention="character"
                                            ))
 
+#'Run Parameters
+#'
+#'Class representation of the parameters of an Illumina run.
+#' 
+#'@section Slots:
+#'\describe{
+#'\item{\code{experiment}:}{Name of the experiment}
+#'\item{\code{user}:}{Name of the user logged in on the computer}
+#'\item{\code{computername}:}{Name of the computer running the control software}
+#'\item{\code{components}:}{data.frame of component attributes}
+#'}
+setClass("runParameter", slots=c(experiment="character", 
+                                 user="character", 
+                                 computername="character",
+                                 components="data.frame"
+))
+
 #'Structure for holding parsed InterOp headers and data
 #'
 #'@section Slots:
@@ -61,6 +78,7 @@ setClass("savData", slots=c(header="list", data="data.frame", accessor="characte
 #'\item{\code{date}:}{Run date}
 #'\item{\code{cycles}:}{Total number of cycles}
 #'\item{\code{directions}:}{Total number of sequence runs (ends)}
+#'\item{\code{parameter}:}{\link{runParameter-class}}
 #'\item{\code{parsedData}:}{SAV data}
 #'}
 setClass("savProject", 
@@ -74,6 +92,7 @@ setClass("savProject",
                  date="character", 
                  cycles="integer", 
                  directions="integer", 
+                 parameter="runParameter",
                  parsedData="list"), 
          prototype=prototype(location="."))
 

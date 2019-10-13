@@ -20,6 +20,7 @@ Represents a flowcell, metadata and parsed SAV information
 \item{\code{date}:}{Run date}
 \item{\code{cycles}:}{Total number of cycles}
 \item{\code{directions}:}{Total number of sequence runs (ends)}
+\item{\code{parameter}:}{\link{runParameter-class}}
 \item{\code{parsedData}:}{SAV data}
 }
 }

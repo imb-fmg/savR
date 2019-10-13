@@ -41,6 +41,60 @@ setMethod("savR", signature("character"), function(object) {
 											 lanepersection=as.integer(XML::xmlAttrs(layout)["LanePerSection"]),
 											 tilenamingconvention=as.character(tnc)
 											 )
+	rp <- normalizePath(paste(object, "RunParameters.xml", sep="/"), mustWork=FALSE)
+	if (!file.exists(rp)) 
+	  message("INFO: File RunParameters.xml not found. Continuing without collection of run parameters.")
+	else {
+	  # There are different file versions wich use different capital conventions for combined words
+	  # used as node names (i. e. FlowcellRFIDTag vs FlowCellRfidTag).
+	  # Since none of the R XML libraries support XPath 2.0, matches(name(), 'FlowcellRFIDTag', 'i') or
+	  # contains(lower-case(name()), 'flowcellrfidtag') cannot be used.
+	  # Fortunately, the XPath 1.0 function translate() can be used to circumvent this.
+
+	  runparams <- XML::xmlInternalTreeParse(rp)
+	  
+	  nodeNames <- c("FlowCell", "PR2Bottle", "ReagentKit")
+	  pn <- vector("character", 3)
+	  sn <- vector("character", 3)
+	  (ed = structure(rep(NA_real_, length(nodeNames)), class="Date"))
+	  r <- 1
+	  for (nodeName in nodeNames) {
+	    ns <- XML::getNodeSet(runparams, paste0("//*[contains(translate(name(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '", tolower(paste0(nodeName, "RFIDTag")), "')]"))
+	    subDoc <- XML::xmlDoc(ns[[1]])
+	    pn[r] <- XML::xmlValue(XML::xpathApply(subDoc, "//PartNumber/text()")[[1]])
+	    sn[r] <- XML::xmlValue(XML::xpathApply(subDoc, "//SerialNumber/text()")[[1]])
+	    ed[r] <- as.Date(XML::xmlValue(XML::xpathApply(subDoc, "//ExpirationDate/text()")[[1]]))
+	    XML::free(subDoc) # free sub document
+	    r <- r + 1
+	  }
+	  data.f <- data.frame(nodeNames, pn, sn, ed, stringsAsFactors = FALSE)
+	  colnames(data.f) <- c("Component", "PartNumber", "SerialNumber", "ExpirationDate")
+	  
+	  #<RunParametersVersion>MiSeq_1_1</RunParametersVersion>
+	  #<Chemistry>Amplicon</Chemistry>
+	  #<Workflow>
+	  #  <Analysis>GenerateFASTQ</Analysis>
+	  #</Workflow>
+	  
+	  #<RunParametersVersion>MiSeq_1_1</RunParametersVersion>
+	  #<FPGAVersion>9.5.12</FPGAVersion>
+	  #<MCSVersion>2.6.2.1</MCSVersion>
+	  #<RTAVersion>1.18.54</RTAVersion>
+	  #<ScannerID>M04903</ScannerID>
+	  
+	  #  <RunParametersVersion>NextSeq_1_1_4</RunParametersVersion>
+	  #<InstrumentID>NS500342</InstrumentID>
+	  #<RTAVersion>2.4.6</RTAVersion>
+	  #<SystemSuiteVersion>1.4.1.3</SystemSuiteVersion>
+	  
+	  retval@parameter <- new("runParameter", 
+	                          experiment = XML::xmlValue(XML::xpathApply(runparams, "/RunParameters/ExperimentName/text()[1]")[[1]]),
+	                          user = XML::xmlValue(XML::getNodeSet(runparams, "/RunParameters/Username/text()[1]")[[1]]),
+	                          computername = XML::xmlValue(XML::getNodeSet(runparams, "/RunParameters/ComputerName/text()[1]")[[1]]),
+	                          components = data.f
+	  )
+	}
+	
 	return(init(retval))
 } )
 
