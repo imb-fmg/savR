@@ -119,9 +119,10 @@ setMethod("plotIntensity", signature(project="savProject", cycle="integer", base
 	x <- y <- NULL
 	if (cycle < 0)
 		stop ("Cycle out of range")
-	data <- project@parsedData[["savCorrectedIntensityFormat"]]@data
-	if (is.null(data))
+	if (is.null(project@parsedData[["savCorrectedIntensityFormat"]]))
 		stop("Corrected Intensity data not available")
+	else
+		data <- project@parsedData[["savCorrectedIntensityFormat"]]@data
 	val <- paste("avg_cor_called", c("A", "C", "G", "T"), sep="_") 
 	names(val) <- c("A", "C", "G", "T")
 	maxInt <- max(c(data[, val["A"]], data[, val["C"]], data[, val["G"]], data[, val["T"]]))
@@ -156,9 +157,10 @@ setMethod("plotFWHM", signature(project="savProject", cycle="integer", base="cha
 	x <- y <- NULL
 	if (cycle < 0)
 		stop ("Cycle out of range")
-	data <- project@parsedData[["savExtractionFormat"]]@data
-	if (is.null(data))
+	if (is.null(project@parsedData[["savExtractionFormat"]]))
 		stop("Extraction data not available")
+	else
+		data <- project@parsedData[["savExtractionFormat"]]@data
 	data <- data[data$cycle==cycle,]
 	base <- match.arg(base)
 	val <- paste("FWHM", base, sep="_")
@@ -207,9 +209,10 @@ setMethod("plotQGT30", signature(project="savProject", cycle="integer"), functio
 	x <- y <- gte30 <- NULL
 	if (cycle < 0)
 		stop ("Cycle out of range")
-	data <- project@parsedData[["savQualityFormat"]]@data
-	if (is.null(data))
+	if (is.null(project@parsedData[["savQualityFormat"]]))
 		stop("Quality data not available")
+	else
+		data <- project@parsedData[["savQualityFormat"]]@data
 	cycleData <- getFormatQGT30(data, cycle)
 	p <- qplot(x, y, fill=gte30, data=cycleData, geom="tile", position="dodge", main = paste("Percent Q>=30, Cycle ", cycle, sep="")) + 
 		theme_bw() + theme(legend.position = "bottom") + scale_fill_continuous(guide = guide_colorbar(title="%Q>=30", barwidth=10), limits=c(0,100) ) +
@@ -228,9 +231,10 @@ setMethod("plotQGT30", signature(project="savProject", cycle="missing"), functio
 #@aliases pfBoxplot,savProject-method
 setMethod("pfBoxplot", signature("savProject"), function(project) {
 	lane <- value <- code <- NULL
-	data <- project@parsedData[["savTileFormat"]]@data
-	if (is.null(data))
+	if (is.null(project@parsedData[["savTileFormat"]]))
 		stop("Tile data not available")
+	else
+		data <- project@parsedData[["savTileFormat"]]@data
 	data <- data[data$code %in% c(100,101),]
 	data[data$code==100, "code"] <- "Clusters"
 	data[data$code==101, "code"] <- "PF"
